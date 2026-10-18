@@ -1,0 +1,18 @@
+services:
+  em-planner:
+    build:
+      context: .
+      target: em-planner
+    image: em-planner
+    container_name: em-planner
+    ipc: host
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY:-}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-/tmp/.Xauthority}:/root/.Xauthority

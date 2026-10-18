@@ -1,0 +1,18 @@
+Statement:
+Given A GCode file,
+a) Extract x(linear), y(linear), z(linear), a(rotary on X-axis), c(rotary on Z-axis) positions.
+b) Develop a function to generate an S-curve trajectory for a 5-axis CNC machine. Consider velocity, acceleration, and jerk constraints.
+c) Extrapolate this xyzac positions to get Forward and Inverse Kinematics governed by machine parameter such as:
+
+Given: 
+                                X                   Y               Z						A				C
+Max acceleration(mm/s/s):       1510              1390             2340					      9220			      7200
+Max Velocity(mm/s)      :       250               500              250					      461			      720
+Max Position(mm)        :     +/- 150            +/- 180          -180(no movement in positive direction)    -110 degree/110 degree	    -1e99/1e99	
+
+Please feel free to contact us for any clarification,.
+
+
+Appendix:
+
+GCode: A standard format with command for machine. 

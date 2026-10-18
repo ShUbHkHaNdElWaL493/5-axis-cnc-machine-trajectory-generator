@@ -1,4 +1,4 @@
-# Project
+# 5-axis CNC Machine Trajectory Generator
 
 This project focuses on extracting positions from a GCode file, interpolating the positions using an S-curve trajectory for a 5-axis CNC machine and getting the forward and inverse kinematics governed by the given machine parameters.
 

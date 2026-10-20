@@ -1,10 +1,10 @@
 services:
-  em-planner:
+  em-trajectory-generator:
     build:
       context: .
-      target: em-planner
-    image: em-planner
-    container_name: em-planner
+      target: em-trajectory-generator
+    image: em-trajectory-generator
+    container_name: em-trajectory-generator
     ipc: host
     network_mode: host
     privileged: true

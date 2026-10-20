@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS em-planner-build
+FROM ubuntu:24.04 AS em-trajectory-generator-build
 
 SHELL ["/bin/bash", "-c"]
 
@@ -14,6 +14,6 @@ COPY . .
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build
 
-FROM em-planner-build AS em-planner
+FROM em-trajectory-generator-build AS em-trajectory-generator
 
 CMD [ "bash" ]

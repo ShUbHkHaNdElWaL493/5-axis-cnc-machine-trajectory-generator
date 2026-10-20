@@ -63,87 +63,100 @@ namespace em
                         p1.c - p0.c
                     };
 
-                    double L_xyz = std::sqrt(delta.x*delta.x + delta.y*delta.y + delta.z*delta.z);
-                    double L_a = delta.a;
-                    double L_c = delta.c;
-                    if (L_xyz < 1e-6 && L_a < 1e-6 && L_c < 1e-6) continue;
+                    GeometryVector abs_delta = {
+                        std::abs(delta.x),
+                        std::abs(delta.y),
+                        std::abs(delta.z),
+                        std::abs(delta.a),
+                        std::abs(delta.c)
+                    };
 
-                    double v_max_lin = 0.0, a_max_lin = 0.0;
-                    if (L_xyz >= 1e-6)
+                    double lambda_max_vel = 1e9;
+                    double lambda_max_acc = 1e9;
+                    if (abs_delta.x > 1e-6)
                     {
-                        double u[3] = {
-                            delta.x / L_xyz,
-                            delta.y / L_xyz,
-                            delta.z / L_xyz
-                        };
-
-                        v_max_lin = machine_limits.max_vel.x / std::abs(u[0]);
-                        v_max_lin = std::min(v_max_lin, machine_limits.max_vel.y / std::abs(u[1]));
-                        v_max_lin = std::min(v_max_lin, machine_limits.max_vel.z / std::abs(u[2]));
-
-                        a_max_lin = machine_limits.max_acc.x / std::abs(u[0]);
-                        a_max_lin = std::min(a_max_lin, machine_limits.max_acc.y / std::abs(u[1]));
-                        a_max_lin = std::min(a_max_lin, machine_limits.max_acc.z / std::abs(u[2]));
+                        lambda_max_vel = std::min(lambda_max_vel, machine_limits.max_vel.x / abs_delta.x);
+                        lambda_max_acc = std::min(lambda_max_acc, machine_limits.max_acc.x / abs_delta.x);
+                    }
+                    if (abs_delta.y > 1e-6)
+                    {
+                        lambda_max_vel = std::min(lambda_max_vel, machine_limits.max_vel.y / abs_delta.y);
+                        lambda_max_acc = std::min(lambda_max_acc, machine_limits.max_acc.y / abs_delta.y);
+                    }
+                    if (abs_delta.z > 1e-6)
+                    {
+                        lambda_max_vel = std::min(lambda_max_vel, machine_limits.max_vel.z / abs_delta.z);
+                        lambda_max_acc = std::min(lambda_max_acc, machine_limits.max_acc.z / abs_delta.z);
+                    }
+                    if (abs_delta.a > 1e-6)
+                    {
+                        lambda_max_vel = std::min(lambda_max_vel, machine_limits.max_vel.a / abs_delta.a);
+                        lambda_max_acc = std::min(lambda_max_acc, machine_limits.max_acc.a / abs_delta.a);
+                    }
+                    if (abs_delta.c > 1e-6)
+                    {
+                        lambda_max_vel = std::min(lambda_max_vel, machine_limits.max_vel.c / abs_delta.c);
+                        lambda_max_acc = std::min(lambda_max_acc, machine_limits.max_acc.c / abs_delta.c);
                     }
 
-                    if (p1.f > 0.0) v_max_lin = std::min(v_max_lin, p1.f);
+                    double L_xyz = std::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
+                    if ((p1.f > 0.0) && (L_xyz > 1e-6))
+                    {
+                        lambda_max_vel = std::min(lambda_max_vel, p1.f / L_xyz);
+                    }
 
-                    TimeProfile tp_xyz = calculateTimeProfile(L_xyz, v_max_lin, a_max_lin);
-                    TimeProfile tp_a = calculateTimeProfile(L_a, machine_limits.max_vel.a, machine_limits.max_acc.a);
-                    TimeProfile tp_c = calculateTimeProfile(L_c, machine_limits.max_vel.c, machine_limits.max_acc.c);
+                    TimeProfile tp_sync = calculateTimeProfile(1.0, lambda_max_vel, lambda_max_acc);
+                    if (tp_sync.t_total < 1e-6) continue;
 
-                    TimeProfile tp_sync;
-                    tp_sync.t_total = std::max({tp_xyz.t_total, tp_a.t_total, tp_c.t_total});
-                    tp_sync.t_a = std::max({tp_xyz.t_a, tp_a.t_a, tp_c.t_a});
-                    if (tp_sync.t_a * 2.0 > tp_sync.t_total) tp_sync.t_a = tp_sync.t_total / 2.0;
-                    tp_sync.t_c = tp_sync.t_total - (2.0 * tp_sync.t_a);
+                    double lambda_vel = (tp_sync.t_a + tp_sync.t_c > 1e-9) ? (1.0 / (tp_sync.t_a + tp_sync.t_c)) : 0.0;
+                    double lambda_acc = (tp_sync.t_a > 1e-9) ? (lambda_vel / tp_sync.t_a) : 0.0;
 
-                    double v_peak_lambda = (tp_sync.t_a + tp_sync.t_c > 1e-6) ? (1.0 / (tp_sync.t_a + tp_sync.t_c)) : 0.0;
-                    double a_max_lambda  = (tp_sync.t_a > 1e-6) ? (v_peak_lambda / tp_sync.t_a) : 0.0;
+                    double phase_t[4] = {
+                        0.0,
+                        tp_sync.t_a,
+                        tp_sync.t_a + tp_sync.t_c,
+                        2.0 * tp_sync.t_a + tp_sync.t_c
+                    };
+
+                    double phase_acc[3] = {
+                        lambda_acc,
+                        0.0,
+                        -lambda_acc
+                    };
 
                     size_t num_steps = static_cast<size_t>(std::ceil(tp_sync.t_total / dt));
                     for (size_t step = 0; step <= num_steps; ++step)
                     {
                         double t = step * dt;
-                        if (t > tp_sync.t_total) t = tp_sync.t_total;
+                        if (t > phase_t[3]) t = phase_t[3];
 
-                        double lambda = 0.0;
-                        double lambda_dot = 0.0;
-                        double lambda_dot_dot = 0.0;
-
-                        if (t < tp_sync.t_a)
+                        int phase = 0;
+                        while (phase < 2 && t > phase_t[phase + 1])
                         {
-                            lambda_dot_dot = a_max_lambda;
-                            lambda_dot = a_max_lambda * t;
-                            lambda = 0.5 * a_max_lambda * t * t;
-                        }
-                        else if (t < tp_sync.t_a + tp_sync.t_c)
-                        {
-                            double tau = t - tp_sync.t_a;
-                            lambda_dot_dot = 0.0;
-                            lambda_dot = v_peak_lambda;
-                            lambda = (0.5 * a_max_lambda * tp_sync.t_a * tp_sync.t_a) + (v_peak_lambda * tau);
-                        }
-                        else
-                        {
-                            double tau = t - (tp_sync.t_a + tp_sync.t_c);
-                            lambda_dot_dot = -a_max_lambda;
-                            lambda_dot = v_peak_lambda - (a_max_lambda * tau);
-                            lambda = (0.5 * a_max_lambda * tp_sync.t_a * tp_sync.t_a) +
-                                     (v_peak_lambda * tp_sync.t_c) +
-                                     (v_peak_lambda * tau - 0.5 * a_max_lambda * tau * tau);
+                            phase++;
                         }
 
-                        if (step == num_steps || t >= tp_sync.t_total)
+                        double s_0 = 0.0, v_0 = 0.0;
+                        for (int p = 0; p < phase; ++p)
                         {
-                            lambda = 1.0;
-                            lambda_dot = 0.0;
-                            lambda_dot_dot = 0.0;
+                            double dt_p = phase_t[p + 1] - phase_t[p];
+                            s_0 += v_0 * dt_p + 0.5 * phase_acc[p] * dt_p * dt_p;
+                            v_0 += phase_acc[p] * dt_p;
+                        }
+
+                        double tau = t - phase_t[phase];
+                        double lambda_dot_dot = phase_acc[phase];
+                        double lambda_dot = v_0 + phase_acc[phase] * tau;
+                        double lambda = s_0 + v_0 * tau + 0.5 * phase_acc[phase] * tau * tau;
+
+                        if (step == num_steps || t >= phase_t[3])
+                        {
+                            lambda = 1.0; lambda_dot = 0.0; lambda_dot_dot = 0.0;
                         }
 
                         TrajectoryPoint pt;
                         pt.t = trajectory.empty() ? 0.0 : trajectory.back().t + dt;
-
+                        
                         pt.pos.x = p0.x + delta.x * lambda;
                         pt.pos.y = p0.y + delta.y * lambda;
                         pt.pos.z = p0.z + delta.z * lambda;

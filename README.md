@@ -11,3 +11,46 @@ This project focuses on extracting positions from a GCode file, interpolating th
 | **Z** | Linear (mm) | -180 to 0 mm | 250 mm/s | 2340 mm/s² |
 | **A** | Rotary (°) | -110° to +110° | 461 °/s | 9220 °/s² |
 | **C** | Rotary (°) | -1e99° to 1e99° | 720 °/s | 7200 °/s² |
+
+## Requirements
+
+- Docker
+
+## Environment Setup
+
+```bash
+# Setup the docker container for running the project
+
+docker compose --profile cpu up --build -d # CPU version for non-GPU systems
+docker compose --profile gpu up --build -d # GPU version for NVIDIA systems with nvidia-container-toolkit set up
+
+docker exec -it em-trajectory bash
+```
+
+## Trajectory Generator
+
+Run the trajectory generator with the `.tap` file provided.
+The output will be in form of a `.csv` file for viewing the generated trajectory in a human-readable form.
+```bash
+./em-trajectory-generator <path_to_gcode.tap>
+```
+
+## Trajectory Visualizer
+
+Run the trajectory visualizer with the `.csv` file containing the trajectory provided.
+```bash
+./em-trajectory-visualizer <path_to_trajectory.csv>
+```
+
+## Trajectory Comparison
+
+<div style="text-align: center;">
+    <figure style="display: inline-block; vertical-align: top; margin-right: 20px;">
+        <img src="./docs/trapezoidal.png" alt="Trapezoidal Trajectory" width="450">
+        <figcaption><em>Trapezoidal Trajectory</em></figcaption>
+    </figure>
+    <figure style="display: inline-block; vertical-align: top;">
+        <img src="./docs/s_curve.png" alt="S-Curve Trajectory" width="450">
+        <figcaption><em>S-Curve Trajectory</em></figcaption>
+    </figure>
+</div>

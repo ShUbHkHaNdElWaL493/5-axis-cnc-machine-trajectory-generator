@@ -61,25 +61,9 @@ namespace em
                     }
                 }
 
-                std::cout << "Successfully parsed " << control_states.size() << " control states." << std::endl;
+                std::cout << "[INFO] Successfully parsed " << control_states.size() << " control states." << std::endl;
             }
 
             const std::vector<MachineState>& getControlStates() const { return control_states; }
-
-            void printPoints() const
-            {
-                std::cout << "Preview of first 10 moves:" << std::endl;
-                std::cout << std::fixed << std::setprecision(3);
-                for (size_t i = 0; i < std::min(control_states.size(), static_cast<size_t>(10)); ++i)
-                {
-                    std::cout << "X: " << std::setw(8) << control_states[i].x << " | "
-                              << "Y: " << std::setw(8) << control_states[i].y << " | "
-                              << "Z: " << std::setw(8) << control_states[i].z << " | "
-                              << "A: " << std::setw(8) << control_states[i].a << " | "
-                              << "C: " << std::setw(8) << control_states[i].c << " | "
-                              << "F: " << std::setw(8) << control_states[i].f
-                              << std::endl;
-                }
-            }
     };
 }

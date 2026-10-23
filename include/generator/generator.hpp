@@ -29,7 +29,7 @@ namespace em
             {
                 std::ofstream file(file_name);
                 file << "t,pos.x,pos.y,pos.z,pos.a,pos.c,vel.x,vel.y,vel.z,vel.a,vel.c,acc.x,acc.y,acc.z,acc.a,acc.c" << std::endl;
-                for (TrajectoryPoint trajectory_point : trajectory)
+                for (const TrajectoryPoint& trajectory_point : trajectory)
                 {
                     file << trajectory_point.t << ","
                          << trajectory_point.pos.x << ","
@@ -48,6 +48,7 @@ namespace em
                          << trajectory_point.acc.a << ","
                          << trajectory_point.acc.c << std::endl;
                 }
+                std::cout << "[INFO] Successfully exported trajectory to " << file_name << "." << std::endl;
             }
     };
 }

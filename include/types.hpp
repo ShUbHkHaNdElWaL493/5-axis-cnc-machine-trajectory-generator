@@ -14,7 +14,6 @@ namespace em
 
     struct MachineLimits 
     {
-        GeometryVector max_pos;
         GeometryVector max_vel;
         GeometryVector max_acc;
         GeometryVector max_jrk;

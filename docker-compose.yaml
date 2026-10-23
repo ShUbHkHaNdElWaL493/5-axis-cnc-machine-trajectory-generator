@@ -1,10 +1,12 @@
 services:
-  em-trajectory-generator:
+  em-trajectory-generator-cpu:
     build:
       context: .
-      target: em-trajectory-generator
-    image: em-trajectory-generator
-    container_name: em-trajectory-generator
+      target: em-trajectory
+    image: em-trajectory
+    container_name: em-trajectory
+    profiles:
+      - cpu
     ipc: host
     network_mode: host
     privileged: true
@@ -16,3 +18,33 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ${XAUTHORITY:-/tmp/.Xauthority}:/root/.Xauthority
+      - ./test:/em/test
+  em-trajectory-generator-gpu:
+    build:
+      context: .
+      target: em-trajectory
+    image: em-trajectory
+    container_name: em-trajectory
+    profiles:
+      - gpu
+    ipc: host
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY:-}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-/tmp/.Xauthority}:/root/.Xauthority
+      - ./test:/em/test
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

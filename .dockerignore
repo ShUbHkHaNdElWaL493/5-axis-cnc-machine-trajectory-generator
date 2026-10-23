@@ -1,5 +1,6 @@
 .gitignore
 .vscode
+*.csv
 docs
 em-trajectory-generator
 README.md

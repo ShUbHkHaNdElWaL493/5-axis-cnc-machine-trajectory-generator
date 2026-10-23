@@ -1,3 +1,4 @@
 .vscode
+*.csv
 build
 em-trajectory-generator

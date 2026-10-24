@@ -25,7 +25,9 @@ namespace em
 
             virtual void generate(const std::vector<MachineState>& control_states) = 0;
 
-            void exportTrajectoryToCSV(const std::string& file_name)
+            const std::vector<TrajectoryPoint>& getTrajectory() const { return trajectory; }
+
+            void exportTrajectoryToCSV(const std::string& file_name) const
             {
                 std::ofstream file(file_name);
                 file << "t,pos.x,pos.y,pos.z,pos.a,pos.c,vel.x,vel.y,vel.z,vel.a,vel.c,acc.x,acc.y,acc.z,acc.a,acc.c" << std::endl;
@@ -48,7 +50,6 @@ namespace em
                          << trajectory_point.acc.a << ","
                          << trajectory_point.acc.c << std::endl;
                 }
-                std::cout << "[INFO] Successfully exported trajectory to " << file_name << "." << std::endl;
             }
     };
 }

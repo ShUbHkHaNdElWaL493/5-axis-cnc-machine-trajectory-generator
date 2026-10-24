@@ -60,8 +60,6 @@ namespace em
                         control_states.push_back(current_state);
                     }
                 }
-
-                std::cout << "[INFO] Successfully parsed " << control_states.size() << " control states." << std::endl;
             }
 
             const std::vector<MachineState>& getControlStates() const { return control_states; }
